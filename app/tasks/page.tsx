@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import {
   Box,
   Container,
@@ -9,50 +9,61 @@ import {
   HStack,
   useDisclosure,
   useColorModeValue,
+  Spinner,
+  Text,
 } from "@chakra-ui/react"
+
 import TaskList from "@/components/TaskList"
 import TaskForm from "@/components/TaskForm"
 import FilterBar from "@/components/FilterBar"
-
-// Define Task interface
-interface Task {
-  _id: string
-  title: string
-  description: string
-  category: string
-  status: string
-}
+import { Task } from "@/types/task"
 
 export default function TasksPage() {
   const { isOpen, onOpen, onClose } = useDisclosure()
+
   const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [tasks, setTasks] = useState<Task[]>([]) // placeholder local state
+  const [loading, setLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>(null)
+
   const bgColor = useColorModeValue("white", "gray.800")
 
-  // Sample static task data for UI preview
-  const tasks: Task[] = [
-    {
-      _id: "1",
-      title: "Finish project report",
-      description: "Due by end of the week",
-      category: "Work",
-      status: "Pending",
-    },
-    {
-      _id: "2",
-      title: "Buy groceries",
-      description: "Milk, eggs, and bread",
-      category: "Personal",
-      status: "Completed",
-    },
-  ]
+  useEffect(() => {
+    // You can replace this with actual fetch logic later
+    setLoading(true)
+    try {
+      // Simulate fetch
+      const storedUser = localStorage.getItem("user")
+      if (storedUser) {
+        const user = JSON.parse(storedUser)
+        console.log("Fetch tasks for user:", user._id)
+        // setTasks(...) with fetched tasks
+      }
+    } catch (err) {
+      setError("Failed to load tasks")
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-  // Edit task handler
   const handleEditTask = (task: Task): void => {
     setEditingTask(task)
     onOpen()
   }
 
-  // Close task form handler
+  const handleSaveTask = (task: Omit<Task, "_id" | "createdAt" | "updatedAt">): void => {
+    if (editingTask) {
+      // Handle update logic
+    } else {
+      // Handle create logic
+    }
+    handleCloseForm()
+  }
+
+  const handleDeleteTask = (taskId: string): void => {
+    // Handle delete logic
+  }
+
   const handleCloseForm = (): void => {
     setEditingTask(null)
     onClose()
@@ -66,15 +77,31 @@ export default function TasksPage() {
             <Heading size="lg">Task Manager</Heading>
           </HStack>
 
-          <FilterBar onAddTask={onOpen} />
+          <FilterBar onAddTaskAction={onOpen} />
 
           <Box mt={6}>
-            <TaskList tasks={tasks} onEditTask={handleEditTask} />
+            {loading ? (
+              <Spinner />
+            ) : error ? (
+              <Text color="red.500">Error: {error}</Text>
+            ) : (
+              <TaskList
+                tasks={tasks}
+                onEditTask={handleEditTask}
+                onDeleteTask={handleDeleteTask}
+              />
+            )}
           </Box>
         </Box>
       </VStack>
 
-      <TaskForm isOpen={isOpen} onClose={handleCloseForm} editTask={editingTask} />
+      <TaskForm
+        isOpen={isOpen}
+        onCloseAction={handleCloseForm}
+        editTask={editingTask}
+        onSave={handleSaveTask}
+      />
     </Container>
   )
 }
+

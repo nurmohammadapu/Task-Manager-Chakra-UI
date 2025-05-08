@@ -1,5 +1,3 @@
-"use client"
-
 import {
   HStack,
   Input,
@@ -12,64 +10,28 @@ import {
   useBreakpointValue,
 } from "@chakra-ui/react"
 import { Search, Plus } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
-// Define the prop types for the FilterBar component
 interface FilterBarProps {
-  onAddTaskAction: () => void  // Renamed to onAddTaskAction
-  onSearch?: (searchQuery: string) => void
-  onCategoryChange?: (category: string) => void
-  onStatusChange?: (status: string) => void
+  onAddTaskAction: () => void
 }
 
-export default function FilterBar({
-  onAddTaskAction, 
-  onSearch,
-  onCategoryChange,
-  onStatusChange,
-}: FilterBarProps) {
-  const [searchQuery, setSearchQuery] = useState<string>("")
-  const [categoryFilter, setCategoryFilter] = useState<string>("")
-  const [statusFilter, setStatusFilter] = useState<string>("")
-  const [userId, setUserId] = useState<string | null>(null)  // userId can be string or null
+export default function FilterBar({ onAddTaskAction }: FilterBarProps) {
+  const [searchQuery, setSearchQuery] = useState("")
+  const [categoryFilter, setCategoryFilter] = useState("")
+  const [statusFilter, setStatusFilter] = useState("")
   const isMobile = useBreakpointValue({ base: true, md: false })
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedUser = localStorage.getItem("user")
-      if (storedUser) {
-        const user = JSON.parse(storedUser)
-        setUserId(user._id)
-      }
-    }
-  }, [])
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+  // Update search query state
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value)
   }
 
-  const handleSearchSubmit = (): void => {
-    if (searchQuery.trim() && userId) {
-      onSearch?.(searchQuery)
-    }
-  }
-
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+  // Trigger search on pressing Enter key
+  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      handleSearchSubmit()
+      console.log("Search Query:", searchQuery)
     }
-  }
-
-  const handleCategorySelect = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-    const value = e.target.value
-    setCategoryFilter(value)
-    onCategoryChange?.(value)
-  }
-
-  const handleStatusSelect = (e: React.ChangeEvent<HTMLSelectElement>): void => {
-    const value = e.target.value
-    setStatusFilter(value)
-    onStatusChange?.(value)
   }
 
   return (
@@ -84,7 +46,7 @@ export default function FilterBar({
           onChange={handleSearchChange}
           onKeyUp={handleKeyUp}
         />
-        <Button ml={2} onClick={handleSearchSubmit} colorScheme="teal" variant="outline">
+        <Button ml={2} colorScheme="teal" variant="outline">
           Search
         </Button>
       </InputGroup>
@@ -92,7 +54,7 @@ export default function FilterBar({
       <HStack spacing={4} flex={{ md: 1 }}>
         <Select
           value={categoryFilter}
-          onChange={handleCategorySelect}
+          onChange={(e) => setCategoryFilter(e.target.value)}
           placeholder="All Categories"
           size={isMobile ? "md" : "md"}
         >
@@ -103,7 +65,7 @@ export default function FilterBar({
 
         <Select
           value={statusFilter}
-          onChange={handleStatusSelect}
+          onChange={(e) => setStatusFilter(e.target.value)}
           placeholder="All Status"
           size={isMobile ? "md" : "md"}
         >
@@ -116,7 +78,7 @@ export default function FilterBar({
         <Button
           leftIcon={<Plus size={18} />}
           colorScheme="teal"
-          onClick={onAddTaskAction}  // Use the updated prop name
+          onClick={onAddTaskAction}
           width={{ base: "100%", md: "auto" }}
         >
           Add Task

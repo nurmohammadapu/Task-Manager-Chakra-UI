@@ -18,14 +18,16 @@ import {
   VStack,
   useToast,
 } from "@chakra-ui/react"
+import { useAppDispatch } from "@/store/hooks"
+import { createNewTask, updateExistingTask } from "@/store/features/tasks/tasksSlice"
 
-// Define types for Task and User
+// Types
 interface Task {
   _id?: string
   title: string
   description: string
   category: string
-  status: string
+  status: "Pending" | "Completed"
 }
 
 interface User {
@@ -34,13 +36,10 @@ interface User {
   email: string
 }
 
-// Define type for TaskForm props
 interface TaskFormProps {
   isOpen: boolean
-  onCloseAction: () => void  // Renamed to onCloseAction
+  onCloseAction: () => void  // Renamed from `onClose`
   editTask?: Task | null
-  onAddTask?: (taskData: Task & { user: string }) => Promise<void>
-  onUpdateTask?: (taskData: { taskId: string; taskData: Task }) => Promise<void>
 }
 
 const initialTaskState: Task = {
@@ -50,24 +49,18 @@ const initialTaskState: Task = {
   status: "Pending",
 }
 
-export default function TaskForm({
-  isOpen,
-  onCloseAction,  // Renamed to onCloseAction
-  editTask,
-  onAddTask,
-  onUpdateTask,
-}: TaskFormProps) {
+export default function TaskForm({ isOpen, onCloseAction, editTask }: TaskFormProps) {
   const [task, setTask] = useState<Task>(initialTaskState)
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isLoading, setIsLoading] = useState(false)
   const [user, setUser] = useState<User | null>(null)
   const toast = useToast()
+  const dispatch = useAppDispatch()
 
+  // Load user from local storage
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedUser = localStorage.getItem("user")
-      if (storedUser) {
-        setUser(JSON.parse(storedUser))
-      }
+    const storedUser = localStorage.getItem("user")
+    if (storedUser) {
+      setUser(JSON.parse(storedUser))
     }
   }, [])
 
@@ -106,33 +99,21 @@ export default function TaskForm({
     try {
       setIsLoading(true)
 
-      if (editTask) {
-        await onUpdateTask?.({
-          taskId: editTask._id!,
-          taskData: task,
-        })
-
-        toast({
-          title: "Task updated",
-          status: "success",
-          duration: 2000,
-        })
+      if (editTask && editTask._id) {
+        await dispatch(updateExistingTask({ taskId: editTask._id, updatedData: task })).unwrap()
       } else {
-        await onAddTask?.({
-          ...task,
-          user: user._id,
-        })
-
-        toast({
-          title: "Task added",
-          status: "success",
-          duration: 2000,
-        })
+        await dispatch(createNewTask({ ...task, user: user._id })).unwrap()
       }
 
-      onCloseAction() // Use onCloseAction instead of onClose
+      toast({
+        title: editTask ? "Task updated" : "Task added",
+        status: "success",
+        duration: 2000,
+      })
+
+      onCloseAction()
       setTask(initialTaskState)
-    } catch (error: any) {  // Specify the type for error
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error?.message || "Failed to save task",

@@ -85,9 +85,11 @@ export default function Navbar() {
           onClick={isOpen ? onClose : onOpen}
         />
         <HStack spacing={8} alignItems={"center"}>
+            <Button as={Link} href="/" variant="ghost" size="sm">
           <Heading size="md" color={useColorModeValue("teal.500", "teal.300")}>
             TaskManager
           </Heading>
+              </Button>
           <HStack as={"nav"} spacing={4} display={{ base: "none", md: "flex" }}>
             {Links.map((link) => (
               <NavLink key={link.name} href={link.href} isActive={pathname === link.href}>

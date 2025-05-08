@@ -25,7 +25,7 @@ export const theme = extendTheme({
     body: "Inter, system-ui, sans-serif",
   },
   styles: {
-    global: (props) => ({
+    global: (props: { colorMode: string }) => ({
       body: {
         bg: mode("gray.50", "gray.900")(props),
         minHeight: "100vh",

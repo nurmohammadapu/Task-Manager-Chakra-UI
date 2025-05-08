@@ -41,7 +41,7 @@ export default function Home() {
 
         <Box flex={1} maxW={{ base: "100%", md: "50%" }} borderRadius="xl" overflow="hidden" boxShadow="xl">
           <Image
-            src="/placeholder.svg?height=400&width=600"
+            src="/heropic.jpg"
             alt="Task Manager Dashboard Preview"
             width="100%"
             height="auto"

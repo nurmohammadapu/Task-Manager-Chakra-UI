@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { taskAPI } from "@/services/operations/taskAPI";
 
-// Task state interface
+// Task Type
 interface Task {
   _id: string;
   title: string;
@@ -13,147 +13,222 @@ interface Task {
   updatedAt: string;
 }
 
-interface TaskResponse {
-  tasks: Task[];
-  task?: Task;
-  message?: string;
-}
-
-// Initial state
 interface TaskState {
   tasks: Task[];
+  task: Task | null;
   loading: boolean;
   error: string | null;
 }
 
 const initialState: TaskState = {
   tasks: [],
+  task: null,
   loading: false,
   error: null,
 };
 
 // Async Thunks
 
-// Get all tasks for a user
-export const getTasksAction = createAsyncThunk(
-  "tasks/getTasks",
-  async (userId: string, { rejectWithValue }) => {
-    try {
-      const response = await taskAPI.getTasks(userId);
-      return response.tasks; // Return tasks to be added to state
-    } catch (err: any) {
-      return rejectWithValue(err.message || "Failed to fetch tasks");
-    }
+export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async (userId: string, thunkAPI) => {
+  try {
+    const response = await taskAPI.getTasks(userId);
+    return response.tasks;
+  } catch (err: any) {
+    return thunkAPI.rejectWithValue(err.message);
   }
-);
+});
 
-// Create a new task
-export const createTaskAction = createAsyncThunk(
-  "tasks/createTask",
-  async (taskData: Omit<Task, "_id" | "createdAt" | "updatedAt">, { rejectWithValue }) => {
+export const fetchTaskById = createAsyncThunk('tasks/fetchTaskById', async (taskId: string, thunkAPI) => {
+  try {
+    const response = await taskAPI.getTaskById(taskId);
+    return response.task;
+  } catch (err: any) {
+    return thunkAPI.rejectWithValue(err.message);
+  }
+});
+
+export const createNewTask = createAsyncThunk(
+  'tasks/createTask',
+  async (taskData: Omit<Task, '_id' | 'createdAt' | 'updatedAt'>, thunkAPI) => {
     try {
       const response = await taskAPI.createTask(taskData);
-      return response.task; // Return the created task
+      return response.task;
     } catch (err: any) {
-      return rejectWithValue(err.message || "Failed to create task");
+      return thunkAPI.rejectWithValue(err.message);
     }
   }
 );
 
-// Update a task
-export const updateTaskAction = createAsyncThunk(
-  "tasks/updateTask",
-  async (task: { taskId: string; updatedData: Partial<Task> }, { rejectWithValue }) => {
+export const updateExistingTask = createAsyncThunk(
+  'tasks/updateTask',
+  async (
+    { taskId, updatedData }: { taskId: string; updatedData: Partial<Omit<Task, '_id' | 'user' | 'createdAt' | 'updatedAt'>> },
+    thunkAPI
+  ) => {
     try {
-      const response = await taskAPI.updateTask(task.taskId, task.updatedData);
-      return response.task; // Return updated task
+      const response = await taskAPI.updateTask(taskId, updatedData);
+      return response.task;
     } catch (err: any) {
-      return rejectWithValue(err.message || "Failed to update task");
+      return thunkAPI.rejectWithValue(err.message);
     }
   }
 );
 
-// Delete a task
-export const deleteTaskAction = createAsyncThunk(
-  "tasks/deleteTask",
-  async (taskId: string, { rejectWithValue }) => {
+export const deleteTaskById = createAsyncThunk('tasks/deleteTask', async (taskId: string, thunkAPI) => {
+  try {
+    await taskAPI.deleteTask(taskId);
+    return taskId;
+  } catch (err: any) {
+    return thunkAPI.rejectWithValue(err.message);
+  }
+});
+
+export const fetchTasksByCategory = createAsyncThunk(
+  'tasks/fetchTasksByCategory',
+  async ({ userId, category }: { userId: string; category: string }, thunkAPI) => {
     try {
-      const response = await taskAPI.deleteTask(taskId);
-      return taskId; // Return taskId to remove from state
+      const response = await taskAPI.getTasksByCategory(userId, category);
+      return response.tasks;
     } catch (err: any) {
-      return rejectWithValue(err.message || "Failed to delete task");
+      return thunkAPI.rejectWithValue(err.message);
     }
   }
 );
 
-// Task slice
+export const fetchPendingTasks = createAsyncThunk('tasks/fetchPendingTasks', async (userId: string, thunkAPI) => {
+  try {
+    const response = await taskAPI.getPendingTasks(userId);
+    return response.tasks;
+  } catch (err: any) {
+    return thunkAPI.rejectWithValue(err.message);
+  }
+});
+
+export const fetchCompletedTasks = createAsyncThunk('tasks/fetchCompletedTasks', async (userId: string, thunkAPI) => {
+  try {
+    const response = await taskAPI.getCompletedTasks(userId);
+    return response.tasks;
+  } catch (err: any) {
+    return thunkAPI.rejectWithValue(err.message);
+  }
+});
+
+export const toggleTaskStatus = createAsyncThunk(
+  'tasks/toggleTaskStatus',
+  async ({ taskId, status }: { taskId: string; status: 'Pending' | 'Completed' }, thunkAPI) => {
+    try {
+      const response = await taskAPI.toggleTaskStatus(taskId, status);
+      return response.task;
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(err.message);
+    }
+  }
+);
+
+export const searchTasks = createAsyncThunk('tasks/searchTasks', async (query: string, thunkAPI) => {
+  try {
+    const response = await taskAPI.searchTasks(query);
+    return response.tasks;
+  } catch (err: any) {
+    return thunkAPI.rejectWithValue(err.message);
+  }
+});
+
+// Slice
 const taskSlice = createSlice({
-  name: "tasks",
+  name: 'tasks',
   initialState,
-  reducers: {},
+  reducers: {
+    clearTaskState: (state) => {
+      state.task = null;
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      // Get tasks
-      .addCase(getTasksAction.pending, (state) => {
+      // fetchTasks
+      .addCase(fetchTasks.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getTasksAction.fulfilled, (state, action) => {
+      .addCase(fetchTasks.fulfilled, (state, action: PayloadAction<Task[]>) => {
         state.loading = false;
         state.tasks = action.payload;
       })
-      .addCase(getTasksAction.rejected, (state, action) => {
+      .addCase(fetchTasks.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
 
-      // Create task
-      .addCase(createTaskAction.pending, (state) => {
+      // fetchTaskById
+      .addCase(fetchTaskById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(createTaskAction.fulfilled, (state, action) => {
+      .addCase(fetchTaskById.fulfilled, (state, action: PayloadAction<Task | undefined>) => {
         state.loading = false;
-        state.tasks.push(action.payload);
+        state.task = action.payload || null;
       })
-      .addCase(createTaskAction.rejected, (state, action) => {
+      .addCase(fetchTaskById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
 
-      // Update task
-      .addCase(updateTaskAction.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updateTaskAction.fulfilled, (state, action) => {
-        state.loading = false;
-        const index = state.tasks.findIndex((task) => task._id === action.payload._id);
-        if (index !== -1) {
-          state.tasks[index] = action.payload;
+      // createNewTask
+      .addCase(createNewTask.fulfilled, (state, action: PayloadAction<Task | undefined>) => {
+        if (action.payload) {
+          state.tasks.push(action.payload);
         }
       })
-      .addCase(updateTaskAction.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
+
+      // updateExistingTask
+      .addCase(updateExistingTask.fulfilled, (state, action: PayloadAction<Task | undefined>) => {
+        const updatedTask = action.payload;
+        if (updatedTask) {
+          const index = state.tasks.findIndex((task) => task._id === updatedTask._id);
+          if (index !== -1) {
+            state.tasks[index] = updatedTask;
+          }
+        }
       })
 
-      // Delete task
-      .addCase(deleteTaskAction.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(deleteTaskAction.fulfilled, (state, action) => {
-        state.loading = false;
+      // deleteTaskById
+      .addCase(deleteTaskById.fulfilled, (state, action: PayloadAction<string>) => {
         state.tasks = state.tasks.filter((task) => task._id !== action.payload);
       })
-      .addCase(deleteTaskAction.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
+
+      // fetchTasksByCategory
+      .addCase(fetchTasksByCategory.fulfilled, (state, action: PayloadAction<Task[]>) => {
+        state.tasks = action.payload;
+      })
+
+      // fetchPendingTasks
+      .addCase(fetchPendingTasks.fulfilled, (state, action: PayloadAction<Task[]>) => {
+        state.tasks = action.payload;
+      })
+
+      // fetchCompletedTasks
+      .addCase(fetchCompletedTasks.fulfilled, (state, action: PayloadAction<Task[]>) => {
+        state.tasks = action.payload;
+      })
+
+      // toggleTaskStatus
+      .addCase(toggleTaskStatus.fulfilled, (state, action: PayloadAction<Task | undefined>) => {
+        const updatedTask = action.payload;
+        if (updatedTask) {
+          const index = state.tasks.findIndex((task) => task._id === updatedTask._id);
+          if (index !== -1) {
+            state.tasks[index] = updatedTask;
+          }
+        }
+      })
+
+      // searchTasks
+      .addCase(searchTasks.fulfilled, (state, action: PayloadAction<Task[]>) => {
+        state.tasks = action.payload;
       });
   },
 });
 
-// Export actions and reducer
-export const {} = taskSlice.actions;
+export const { clearTaskState } = taskSlice.actions;
 export default taskSlice.reducer;
