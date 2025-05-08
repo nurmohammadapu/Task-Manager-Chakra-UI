@@ -19,17 +19,47 @@ import {
   useToast,
 } from "@chakra-ui/react"
 
-const initialTaskState = {
+// Define types for Task and User
+interface Task {
+  _id?: string
+  title: string
+  description: string
+  category: string
+  status: string
+}
+
+interface User {
+  _id: string
+  username: string
+  email: string
+}
+
+// Define type for TaskForm props
+interface TaskFormProps {
+  isOpen: boolean
+  onCloseAction: () => void  // Renamed to onCloseAction
+  editTask?: Task | null
+  onAddTask?: (taskData: Task & { user: string }) => Promise<void>
+  onUpdateTask?: (taskData: { taskId: string; taskData: Task }) => Promise<void>
+}
+
+const initialTaskState: Task = {
   title: "",
   description: "",
   category: "Work",
   status: "Pending",
 }
 
-export default function TaskForm({ isOpen, onClose, editTask, onAddTask, onUpdateTask }) {
-  const [task, setTask] = useState(initialTaskState)
-  const [isLoading, setIsLoading] = useState(false)
-  const [user, setUser] = useState(null)
+export default function TaskForm({
+  isOpen,
+  onCloseAction,  // Renamed to onCloseAction
+  editTask,
+  onAddTask,
+  onUpdateTask,
+}: TaskFormProps) {
+  const [task, setTask] = useState<Task>(initialTaskState)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [user, setUser] = useState<User | null>(null)
   const toast = useToast()
 
   useEffect(() => {
@@ -45,7 +75,7 @@ export default function TaskForm({ isOpen, onClose, editTask, onAddTask, onUpdat
     setTask(editTask || initialTaskState)
   }, [editTask, isOpen])
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target
     setTask((prev) => ({ ...prev, [name]: value }))
   }
@@ -78,7 +108,7 @@ export default function TaskForm({ isOpen, onClose, editTask, onAddTask, onUpdat
 
       if (editTask) {
         await onUpdateTask?.({
-          taskId: editTask._id,
+          taskId: editTask._id!,
           taskData: task,
         })
 
@@ -100,9 +130,9 @@ export default function TaskForm({ isOpen, onClose, editTask, onAddTask, onUpdat
         })
       }
 
-      onClose()
+      onCloseAction() // Use onCloseAction instead of onClose
       setTask(initialTaskState)
-    } catch (error) {
+    } catch (error: any) {  // Specify the type for error
       toast({
         title: "Error",
         description: error?.message || "Failed to save task",
@@ -116,7 +146,7 @@ export default function TaskForm({ isOpen, onClose, editTask, onAddTask, onUpdat
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="lg">
+    <Modal isOpen={isOpen} onClose={onCloseAction} size="lg">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>{editTask ? "Edit Task" : "Add New Task"}</ModalHeader>
@@ -161,7 +191,7 @@ export default function TaskForm({ isOpen, onClose, editTask, onAddTask, onUpdat
         </ModalBody>
 
         <ModalFooter>
-          <Button variant="outline" mr={3} onClick={onClose}>
+          <Button variant="outline" mr={3} onClick={onCloseAction}>
             Cancel
           </Button>
           <Button colorScheme="teal" onClick={handleSubmit} isLoading={isLoading}>

@@ -28,19 +28,36 @@ import { useRouter } from "next/navigation"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { sendOtpAction, signupUser, resetError } from "@/store/features/auth/authSlice"
 
+// Define types
+interface FormData {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  confirmPassword: string
+}
+
+interface Errors {
+  firstName?: string
+  lastName?: string
+  email?: string
+  password?: string
+  confirmPassword?: string
+}
+
 export default function SignupPage() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     firstName: "",
     lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
   })
-  const [otp, setOtp] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [otpSent, setOtpSent] = useState(false)
-  const [errors, setErrors] = useState({})
+  const [otp, setOtp] = useState<string>("")
+  const [showPassword, setShowPassword] = useState<boolean>(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false)
+  const [otpSent, setOtpSent] = useState<boolean>(false)
+  const [errors, setErrors] = useState<Errors>({})
 
   const toast = useToast()
   const router = useRouter()
@@ -86,7 +103,7 @@ export default function SignupPage() {
     })
 
     // Clear error when user types
-    if (errors[name]) {
+    if (errors[name as keyof Errors]) {
       setErrors({
         ...errors,
         [name]: "",
@@ -94,8 +111,8 @@ export default function SignupPage() {
     }
   }
 
-  const validateForm = () => {
-    const newErrors = {}
+  const validateForm = (): boolean => {
+    const newErrors: Errors = {}
 
     if (!formData.firstName.trim()) {
       newErrors.firstName = "First name is required"
@@ -137,7 +154,7 @@ export default function SignupPage() {
     }
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (!validateForm()) {

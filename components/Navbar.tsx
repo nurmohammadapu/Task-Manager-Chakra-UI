@@ -18,12 +18,25 @@ import { usePathname } from "next/navigation"
 import LogoutButton from "./LogoutButton"
 import { useEffect, useState } from "react"
 
-const Links = [
+// Define type for Link structure
+interface LinkItem {
+  name: string
+  href: string
+}
+
+const Links: LinkItem[] = [
   { name: "Home", href: "/" },
   { name: "Tasks", href: "/tasks" },
 ]
 
-const NavLink = ({ children, href, isActive }) => {
+// Define type for NavLink component props
+interface NavLinkProps {
+  children: React.ReactNode
+  href: string
+  isActive: boolean
+}
+
+const NavLink = ({ children, href, isActive }: NavLinkProps) => {
   const linkColor = useColorModeValue("gray.600", "gray.200")
   const activeColor = useColorModeValue("teal.500", "teal.300")
 
@@ -46,11 +59,14 @@ const NavLink = ({ children, href, isActive }) => {
   )
 }
 
+// Define type for Navbar component state
 export default function Navbar() {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const { colorMode, toggleColorMode } = useColorMode()
   const pathname = usePathname()
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  // State for tracking whether the user is logged in
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
 
   useEffect(() => {
     // Check if token exists in localStorage

@@ -3,7 +3,31 @@
 import { VStack, Text, Box, useColorModeValue, Spinner, Center } from "@chakra-ui/react"
 import TaskItem from "./TaskItem"
 
-export default function TaskList({ tasks, onEditTask, status, error, onToggleStatus, onDelete }) {
+type Task = {
+  _id: string
+  title: string
+  description: string
+  category: "Work" | "Personal" | "Other" // Strict category typing
+  status: "Pending" | "Completed"
+}
+
+interface TaskListProps {
+  tasks: Task[]
+  onEditTask?: (task: Task) => void
+  status: "loading" | "loaded" | "error"
+  error?: string
+  onToggleStatus?: (taskId: string, newStatus: "Pending" | "Completed") => void
+  onDelete?: (taskId: string) => void
+}
+
+export default function TaskList({
+  tasks,
+  onEditTask,
+  status,
+  error,
+  onToggleStatus,
+  onDelete,
+}: TaskListProps) {
   const emptyBgColor = useColorModeValue("gray.50", "gray.700")
 
   if (status === "loading") {

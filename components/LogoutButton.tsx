@@ -6,15 +6,21 @@ import { useRouter } from "next/navigation"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { logoutUser, resetError } from "@/store/features/auth/authSlice"
 
+// Define the types for Redux state
+interface AuthState {
+  loading: boolean
+  error: string | null
+}
+
 export default function LogoutButton() {
   const toast = useToast()
   const router = useRouter()
   const dispatch = useAppDispatch()
 
   // Get the current loading and error status from the Redux state
-  const { loading, error } = useAppSelector((state) => state.auth)
+  const { loading, error }: AuthState = useAppSelector((state) => state.auth)
 
-  const handleLogout = async () => {
+  const handleLogout = async (): Promise<void> => {
     try {
       // Dispatch the logout action
       await dispatch(logoutUser()).unwrap()
@@ -32,7 +38,7 @@ export default function LogoutButton() {
 
       // Redirect to login page after successful logout
       router.push("/login")
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to log out",

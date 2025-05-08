@@ -1,19 +1,25 @@
 "use client"
 
-import {
-  Box,
-  HStack,
-  Text,
-  IconButton,
-  Badge,
-  Checkbox,
-  useColorModeValue,
-  Flex,
-  useToast,
-} from "@chakra-ui/react"
+import { Box, HStack, Text, IconButton, Badge, Checkbox, useColorModeValue, Flex, useToast } from "@chakra-ui/react"
 import { Trash2, Edit } from "lucide-react"
 
-const getCategoryColor = (category) => {
+// Strict typing for category field
+type Task = {
+  _id: string
+  title: string
+  description: string
+  category: "Work" | "Personal" | "Other" // Strict category typing
+  status: "Pending" | "Completed"
+}
+
+interface TaskItemProps {
+  task: Task
+  onEdit?: (task: Task) => void
+  onToggleStatus?: (taskId: string, newStatus: "Pending" | "Completed") => void
+  onDelete?: (taskId: string) => void
+}
+
+const getCategoryColor = (category: "Work" | "Personal" | "Other") => {
   switch (category) {
     case "Work":
       return "blue"
@@ -26,7 +32,7 @@ const getCategoryColor = (category) => {
   }
 }
 
-export default function TaskItem({ task, onEdit, onToggleStatus, onDelete }) {
+export default function TaskItem({ task, onEdit, onToggleStatus, onDelete }: TaskItemProps) {
   const toast = useToast()
   const bgColor = useColorModeValue("white", "gray.700")
   const borderColor = useColorModeValue("gray.200", "gray.600")
@@ -35,17 +41,27 @@ export default function TaskItem({ task, onEdit, onToggleStatus, onDelete }) {
     try {
       const newStatus = task.status === "Completed" ? "Pending" : "Completed"
       await onToggleStatus?.(task._id, newStatus)
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to update task status",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      })
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to update task status",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: "An unknown error occurred",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        })
+      }
     }
   }
-
+  
   const handleDelete = async () => {
     try {
       await onDelete?.(task._id)
@@ -54,17 +70,28 @@ export default function TaskItem({ task, onEdit, onToggleStatus, onDelete }) {
         status: "success",
         duration: 2000,
       })
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error?.message || "Failed to delete task",
-        status: "error",
-        duration: 3000,
-        isClosable: true,
-      })
+    } catch (error: unknown) {
+      // Same error handling here
+      if (error instanceof Error) {
+        toast({
+          title: "Error",
+          description: error.message || "Failed to delete task",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        })
+      } else {
+        toast({
+          title: "Error",
+          description: "An unknown error occurred",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        })
+      }
     }
   }
-
+  
   return (
     <Box
       p={4}

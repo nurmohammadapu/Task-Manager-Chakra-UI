@@ -14,13 +14,22 @@ import TaskList from "@/components/TaskList"
 import TaskForm from "@/components/TaskForm"
 import FilterBar from "@/components/FilterBar"
 
+// Define Task interface
+interface Task {
+  _id: string
+  title: string
+  description: string
+  category: string
+  status: string
+}
+
 export default function TasksPage() {
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const [editingTask, setEditingTask] = useState(null)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
   const bgColor = useColorModeValue("white", "gray.800")
 
   // Sample static task data for UI preview
-  const tasks = [
+  const tasks: Task[] = [
     {
       _id: "1",
       title: "Finish project report",
@@ -37,12 +46,14 @@ export default function TasksPage() {
     },
   ]
 
-  const handleEditTask = (task) => {
+  // Edit task handler
+  const handleEditTask = (task: Task): void => {
     setEditingTask(task)
     onOpen()
   }
 
-  const handleCloseForm = () => {
+  // Close task form handler
+  const handleCloseForm = (): void => {
     setEditingTask(null)
     onClose()
   }
