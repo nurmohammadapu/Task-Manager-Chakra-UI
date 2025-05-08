@@ -78,7 +78,7 @@ export default function SignupPage() {
     }
   }, [error, toast, dispatch])
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData({
       ...formData,
