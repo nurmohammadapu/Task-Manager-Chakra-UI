@@ -45,6 +45,7 @@ export default function Home() {
             alt="Task Manager Dashboard Preview"
             width="100%"
             height="auto"
+            loading="lazy"
           />
         </Box>
       </Flex>
