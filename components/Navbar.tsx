@@ -1,17 +1,4 @@
-"use client"
-
-import {
-  Box,
-  Flex,
-  HStack,
-  IconButton,
-  Button,
-  useDisclosure,
-  useColorModeValue,
-  useColorMode,
-  Stack,
-  Heading,
-} from "@chakra-ui/react"
+import { Box, Flex, HStack, IconButton, Button, useDisclosure, useColorModeValue, useColorMode, Stack, Heading } from "@chakra-ui/react"
 import { Menu, X, Moon, Sun } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -85,11 +72,11 @@ export default function Navbar() {
           onClick={isOpen ? onClose : onOpen}
         />
         <HStack spacing={8} alignItems={"center"}>
-            <Button as={Link} href="/" variant="ghost" size="sm">
-          <Heading size="md" color={useColorModeValue("teal.500", "teal.300")}>
-            TaskManager
-          </Heading>
-              </Button>
+          <Button as={Link} href="/" variant="ghost" size="sm">
+            <Heading size="md" color={useColorModeValue("teal.500", "teal.300")}>
+              TaskManager
+            </Heading>
+          </Button>
           <HStack as={"nav"} spacing={4} display={{ base: "none", md: "flex" }}>
             {Links.map((link) => (
               <NavLink key={link.name} href={link.href} isActive={pathname === link.href}>
@@ -106,7 +93,7 @@ export default function Navbar() {
           {isLoggedIn ? (
             <LogoutButton />
           ) : (
-            <HStack spacing={2}>
+            <HStack spacing={2} display={{ base: "none", sm: "flex" }}>
               <Button as={Link} href="/login" variant="ghost" size="sm">
                 Login
               </Button>
@@ -118,6 +105,7 @@ export default function Navbar() {
         </Flex>
       </Flex>
 
+      {/* Hamburger Menu */}
       {isOpen ? (
         <Box pb={4} display={{ md: "none" }}>
           <Stack as={"nav"} spacing={4}>
@@ -126,6 +114,17 @@ export default function Navbar() {
                 {link.name}
               </NavLink>
             ))}
+            {/* Move Login and Sign Up buttons here for mobile */}
+            {!isLoggedIn && (
+              <HStack spacing={2}>
+                <Button as={Link} href="/login" variant="ghost" size="sm">
+                  Login
+                </Button>
+                <Button as={Link} href="/signup" colorScheme="teal" size="sm">
+                  Sign Up
+                </Button>
+              </HStack>
+            )}
           </Stack>
         </Box>
       ) : null}
