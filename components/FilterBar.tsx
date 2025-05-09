@@ -1,62 +1,42 @@
-import {
-  HStack,
-  Input,
-  Select,
-  InputGroup,
-  InputLeftElement,
-  Button,
-  Box,
-  Flex,
-  useBreakpointValue,
-} from "@chakra-ui/react"
-import { Search, Plus } from "lucide-react"
-import { useState } from "react"
+import React from 'react'
+import { Box, Input, Button, Select, HStack } from '@chakra-ui/react'
 
 interface FilterBarProps {
-  onAddTaskAction: () => void
+  searchQuery: string
+  setSearchQuery: React.Dispatch<React.SetStateAction<string>>
+  onSearch: () => void
+  onCategoryFilter: (category: string) => void
+  onStatusFilter: (status: 'Pending' | 'Completed' | '') => void
 }
 
-export default function FilterBar({ onAddTaskAction }: FilterBarProps) {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [categoryFilter, setCategoryFilter] = useState("")
-  const [statusFilter, setStatusFilter] = useState("")
-  const isMobile = useBreakpointValue({ base: true, md: false })
-
-  // Update search query state
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value)
-  }
-
-  // Trigger search on pressing Enter key
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      console.log("Search Query:", searchQuery)
-    }
-  }
-
+const FilterBar: React.FC<FilterBarProps> = ({
+  searchQuery,
+  setSearchQuery,
+  onSearch,
+  onCategoryFilter,
+  onStatusFilter,
+}) => {
   return (
-    <Flex direction={{ base: "column", md: "row" }} gap={4} align={{ base: "stretch", md: "center" }}>
-      <InputGroup flex="1">
-        <InputLeftElement pointerEvents="none">
-          <Search size={18} color="gray.400" />
-        </InputLeftElement>
+    <Box>
+      <HStack spacing={4}>
         <Input
-          placeholder="Search tasks..."
           value={searchQuery}
-          onChange={handleSearchChange}
-          onKeyUp={handleKeyUp}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') onSearch()
+          }}
+          placeholder="Search tasks"
+          size="md"
         />
-        <Button ml={2} colorScheme="teal" variant="outline">
+        <Button onClick={onSearch} colorScheme="teal">
           Search
         </Button>
-      </InputGroup>
+      </HStack>
 
-      <HStack spacing={4} flex={{ md: 1 }}>
+      <HStack spacing={4} mt={4}>
         <Select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          placeholder="All Categories"
-          size={isMobile ? "md" : "md"}
+          placeholder="Select Category"
+          onChange={(e) => onCategoryFilter(e.target.value)}
         >
           <option value="Work">Work</option>
           <option value="Personal">Personal</option>
@@ -64,26 +44,15 @@ export default function FilterBar({ onAddTaskAction }: FilterBarProps) {
         </Select>
 
         <Select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          placeholder="All Status"
-          size={isMobile ? "md" : "md"}
+          placeholder="Select Status"
+          onChange={(e) => onStatusFilter(e.target.value as 'Pending' | 'Completed' | '')}
         >
           <option value="Pending">Pending</option>
           <option value="Completed">Completed</option>
         </Select>
       </HStack>
-
-      <Box>
-        <Button
-          leftIcon={<Plus size={18} />}
-          colorScheme="teal"
-          onClick={onAddTaskAction}
-          width={{ base: "100%", md: "auto" }}
-        >
-          Add Task
-        </Button>
-      </Box>
-    </Flex>
+    </Box>
   )
 }
+
+export default FilterBar
