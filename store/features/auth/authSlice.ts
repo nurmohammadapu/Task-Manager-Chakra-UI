@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit"
+import Cookies from "js-cookie" 
 import { login, signUp, sendOtp, type LoginData, type SignUpData, type SendOtpData } from "@/services/operations/authAPI"
 
 // User Interface
@@ -19,14 +20,23 @@ interface AuthState {
   otpSent: boolean
 }
 
-// Utility to fetch token and user from localStorage
+// Utility to fetch token and user from cookies, then fallback to localStorage
 const getAuthFromStorage = (): { token: string | null; user: User | null } => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token")
-    const user = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!) : null
+    // First check for token and user in cookies
+    const token = Cookies.get("token")
+    const user = Cookies.get("user") ? JSON.parse(Cookies.get("user")!) : null
+
+    // If not found in cookies, check in localStorage
+    if (!token || !user) {
+      const localStorageToken = localStorage.getItem("token")
+      const localStorageUser = localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")!) : null
+      return { token: localStorageToken, user: localStorageUser }
+    }
+
     return { token, user }
   }
-  // Return null values when running server-side
+
   return { token: null, user: null }
 }
 
@@ -76,6 +86,11 @@ export const loginUser = createAsyncThunk(
     try {
       const response = await login(credentials)
       if (typeof window !== "undefined") {
+        // Save token and user in both cookies and localStorage
+        Cookies.set("token", response.token, { expires: 7 })  // Save token in cookies for 7 days
+        Cookies.set("user", JSON.stringify(response.user), { expires: 7 })  // Save user in cookies for 7 days
+
+        // Save token and user in localStorage
         localStorage.setItem("token", response.token)
         localStorage.setItem("user", JSON.stringify(response.user))
       }
@@ -89,8 +104,10 @@ export const loginUser = createAsyncThunk(
 // Logout User
 export const logoutUser = createAsyncThunk("auth/logoutUser", async (_, { rejectWithValue }) => {
   try {
-    // Clear localStorage and reset state
+    // Clear both cookies and localStorage
     if (typeof window !== "undefined") {
+      Cookies.remove("token")
+      Cookies.remove("user")
       localStorage.removeItem("token")
       localStorage.removeItem("user")
     }

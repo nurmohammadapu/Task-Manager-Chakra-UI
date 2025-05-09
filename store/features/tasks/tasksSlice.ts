@@ -27,25 +27,34 @@ const initialState: TaskState = {
   error: null,
 };
 
+// Utility function to extract error message
+const extractErrorMessage = (err: any) =>
+  err?.response?.data?.message || err.message || "An error occurred";
+
 // Async Thunks
-
-export const fetchTasks = createAsyncThunk('tasks/fetchTasks', async (userId: string, thunkAPI) => {
-  try {
-    const response = await taskAPI.getTasks(userId);
-    return response.tasks;
-  } catch (err: any) {
-    return thunkAPI.rejectWithValue(err.message);
+export const fetchTasks = createAsyncThunk(
+  'tasks/fetchTasks',
+  async ({ userId }: { userId: string }, thunkAPI) => {
+    try {
+      const response = await taskAPI.getTasks(userId);
+      return response.tasks;
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(extractErrorMessage(err));
+    }
   }
-});
+);
 
-export const fetchTaskById = createAsyncThunk('tasks/fetchTaskById', async (taskId: string, thunkAPI) => {
-  try {
-    const response = await taskAPI.getTaskById(taskId);
-    return response.task;
-  } catch (err: any) {
-    return thunkAPI.rejectWithValue(err.message);
+export const fetchTaskById = createAsyncThunk(
+  'tasks/fetchTaskById',
+  async (taskId: string, thunkAPI) => {
+    try {
+      const response = await taskAPI.getTaskById(taskId);
+      return response.task;
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(extractErrorMessage(err));
+    }
   }
-});
+);
 
 export const createNewTask = createAsyncThunk(
   'tasks/createTask',
@@ -54,7 +63,7 @@ export const createNewTask = createAsyncThunk(
       const response = await taskAPI.createTask(taskData);
       return response.task;
     } catch (err: any) {
-      return thunkAPI.rejectWithValue(err.message);
+      return thunkAPI.rejectWithValue(extractErrorMessage(err));
     }
   }
 );
@@ -62,26 +71,32 @@ export const createNewTask = createAsyncThunk(
 export const updateExistingTask = createAsyncThunk(
   'tasks/updateTask',
   async (
-    { taskId, updatedData }: { taskId: string; updatedData: Partial<Omit<Task, '_id' | 'user' | 'createdAt' | 'updatedAt'>> },
+    { taskId, updatedData }: {
+      taskId: string;
+      updatedData: Partial<Omit<Task, '_id' | 'user' | 'createdAt' | 'updatedAt'>>;
+    },
     thunkAPI
   ) => {
     try {
       const response = await taskAPI.updateTask(taskId, updatedData);
       return response.task;
     } catch (err: any) {
-      return thunkAPI.rejectWithValue(err.message);
+      return thunkAPI.rejectWithValue(extractErrorMessage(err));
     }
   }
 );
 
-export const deleteTaskById = createAsyncThunk('tasks/deleteTask', async (taskId: string, thunkAPI) => {
-  try {
-    await taskAPI.deleteTask(taskId);
-    return taskId;
-  } catch (err: any) {
-    return thunkAPI.rejectWithValue(err.message);
+export const deleteTaskById = createAsyncThunk(
+  'tasks/deleteTask',
+  async (taskId: string, thunkAPI) => {
+    try {
+      await taskAPI.deleteTask(taskId);
+      return taskId;
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(extractErrorMessage(err));
+    }
   }
-});
+);
 
 export const fetchTasksByCategory = createAsyncThunk(
   'tasks/fetchTasksByCategory',
@@ -90,49 +105,61 @@ export const fetchTasksByCategory = createAsyncThunk(
       const response = await taskAPI.getTasksByCategory(userId, category);
       return response.tasks;
     } catch (err: any) {
-      return thunkAPI.rejectWithValue(err.message);
+      return thunkAPI.rejectWithValue(extractErrorMessage(err));
     }
   }
 );
 
-export const fetchPendingTasks = createAsyncThunk('tasks/fetchPendingTasks', async (userId: string, thunkAPI) => {
-  try {
-    const response = await taskAPI.getPendingTasks(userId);
-    return response.tasks;
-  } catch (err: any) {
-    return thunkAPI.rejectWithValue(err.message);
+export const fetchPendingTasks = createAsyncThunk(
+  'tasks/fetchPendingTasks',
+  async (userId: string, thunkAPI) => {
+    try {
+      const response = await taskAPI.getPendingTasks(userId);
+      return response.tasks;
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(extractErrorMessage(err));
+    }
   }
-});
+);
 
-export const fetchCompletedTasks = createAsyncThunk('tasks/fetchCompletedTasks', async (userId: string, thunkAPI) => {
-  try {
-    const response = await taskAPI.getCompletedTasks(userId);
-    return response.tasks;
-  } catch (err: any) {
-    return thunkAPI.rejectWithValue(err.message);
+export const fetchCompletedTasks = createAsyncThunk(
+  'tasks/fetchCompletedTasks',
+  async (userId: string, thunkAPI) => {
+    try {
+      const response = await taskAPI.getCompletedTasks(userId);
+      return response.tasks;
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(extractErrorMessage(err));
+    }
   }
-});
+);
 
 export const toggleTaskStatus = createAsyncThunk(
   'tasks/toggleTaskStatus',
-  async ({ taskId, status }: { taskId: string; status: 'Pending' | 'Completed' }, thunkAPI) => {
+  async (
+    { taskId, status }: { taskId: string; status: 'Pending' | 'Completed' },
+    thunkAPI
+  ) => {
     try {
       const response = await taskAPI.toggleTaskStatus(taskId, status);
       return response.task;
     } catch (err: any) {
-      return thunkAPI.rejectWithValue(err.message);
+      return thunkAPI.rejectWithValue(extractErrorMessage(err));
     }
   }
 );
 
-export const searchTasks = createAsyncThunk('tasks/searchTasks', async (query: string, thunkAPI) => {
-  try {
-    const response = await taskAPI.searchTasks(query);
-    return response.tasks;
-  } catch (err: any) {
-    return thunkAPI.rejectWithValue(err.message);
+export const searchTasks = createAsyncThunk(
+  'tasks/searchTasks',
+  async (query: string, thunkAPI) => {
+    try {
+      const response = await taskAPI.searchTasks(query);
+      return response.tasks;
+    } catch (err: any) {
+      return thunkAPI.rejectWithValue(extractErrorMessage(err));
+    }
   }
-});
+);
 
 // Slice
 const taskSlice = createSlice({
@@ -146,7 +173,6 @@ const taskSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // fetchTasks
       .addCase(fetchTasks.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -160,7 +186,6 @@ const taskSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // fetchTaskById
       .addCase(fetchTaskById.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -174,14 +199,12 @@ const taskSlice = createSlice({
         state.error = action.payload as string;
       })
 
-      // createNewTask
       .addCase(createNewTask.fulfilled, (state, action: PayloadAction<Task | undefined>) => {
         if (action.payload) {
           state.tasks.push(action.payload);
         }
       })
 
-      // updateExistingTask
       .addCase(updateExistingTask.fulfilled, (state, action: PayloadAction<Task | undefined>) => {
         const updatedTask = action.payload;
         if (updatedTask) {
@@ -192,27 +215,22 @@ const taskSlice = createSlice({
         }
       })
 
-      // deleteTaskById
       .addCase(deleteTaskById.fulfilled, (state, action: PayloadAction<string>) => {
         state.tasks = state.tasks.filter((task) => task._id !== action.payload);
       })
 
-      // fetchTasksByCategory
       .addCase(fetchTasksByCategory.fulfilled, (state, action: PayloadAction<Task[]>) => {
         state.tasks = action.payload;
       })
 
-      // fetchPendingTasks
       .addCase(fetchPendingTasks.fulfilled, (state, action: PayloadAction<Task[]>) => {
         state.tasks = action.payload;
       })
 
-      // fetchCompletedTasks
       .addCase(fetchCompletedTasks.fulfilled, (state, action: PayloadAction<Task[]>) => {
         state.tasks = action.payload;
       })
 
-      // toggleTaskStatus
       .addCase(toggleTaskStatus.fulfilled, (state, action: PayloadAction<Task | undefined>) => {
         const updatedTask = action.payload;
         if (updatedTask) {
@@ -223,7 +241,6 @@ const taskSlice = createSlice({
         }
       })
 
-      // searchTasks
       .addCase(searchTasks.fulfilled, (state, action: PayloadAction<Task[]>) => {
         state.tasks = action.payload;
       });
