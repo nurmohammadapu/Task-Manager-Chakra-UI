@@ -34,16 +34,9 @@ export default function LoginPage() {
   const dispatch = useAppDispatch()
 
   // Accessing auth state from Redux
-  const { loading, error, user, token } = useAppSelector((state) => state.auth)
+  const { loading, error } = useAppSelector((state) => state.auth)
   const bgColor = useColorModeValue("white", "gray.800")
   const borderColor = useColorModeValue("gray.200", "gray.700")
-
-  // Check if already authenticated
-  useEffect(() => {
-    if (user && token) {
-      router.push("/tasks") // Redirect to the tasks page if logged in
-    }
-  }, [user, token, router])
 
   // Handle error messages from redux state
   useEffect(() => {
